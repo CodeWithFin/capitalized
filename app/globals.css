@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --nav-height: 72px;
+}
+
+.container-xl {
+  @apply mx-auto w-full max-w-7xl px-6;
+}
+
+.card {
+  @apply rounded-3xl border border-slate-200/60 bg-white shadow-lg;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-full bg-[#0a84ff] px-7 py-3 font-semibold text-white shadow-md transition hover:brightness-110;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-3 py-2 text-slate-700 hover:bg-slate-50;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-brand-blue;
+}
+
+table.agenda {
+  @apply w-full overflow-hidden rounded-2xl border border-slate-200 bg-white;
+}
+table.agenda thead th {
+  @apply bg-[#0a84ff] px-4 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white;
+}
+table.agenda tbody td {
+  @apply px-4 py-3 text-slate-700;
+}
+table.agenda tbody tr:not(:last-child) td {
+  @apply border-b border-slate-200;
+}
+
+.sticky-checkout {
+  @apply fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70;
+}
+
+.section-title {
+  @apply text-center text-3xl font-extrabold;
+}
+.section-title-underline {
+  @apply mx-auto mt-2 h-1 w-12 rounded bg-brand-blue;
+}
+
+.icon-badge {
+  @apply inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-brand-blue ring-1 ring-blue-100;
+}
+
+.hero-bg {
+  background:
+    radial-gradient(80% 60% at 0% 0%, rgba(10, 132, 255, 0.08), transparent 60%),
+    radial-gradient(70% 50% at 100% 10%, rgba(0, 0, 0, 0.06), transparent 60%);
+}
+
+.glass {
+  @apply border border-white/40 bg-white/70 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60;
+}
+
+.ticket {
+  @apply relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card;
+}
+.ticket:before,
+.ticket:after {
+  content: "";
+  @apply absolute top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#fafafa];
+}
+.ticket:before { left: -20px; }
+.ticket:after { right: -20px; }
+
+
