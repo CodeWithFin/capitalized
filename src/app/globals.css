@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --muted: #475569; /* slate-600 */
+  --border: #e2e8f0; /* slate-200 */
+}
+:root.dark {
+  --background: #0a0e17; /* near-black indigo for depth */
+  --foreground: #e5e7eb; /* slate-200 */
+  --surface: #0f172a; /* slate-900 */
+  --surface-2: #0b1220;
+  --muted: #94a3b8; /* slate-400 */
+  --border: #1f2937; /* slate-800 */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+}
+
+/* Force light theme aesthetics */
+
+html {
+  background: var(--background);
+}
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.18);
+}
