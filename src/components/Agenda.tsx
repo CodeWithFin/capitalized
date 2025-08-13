@@ -13,17 +13,17 @@ const rows: Row[] = [
 export default function Agenda() {
   return (
     <section id="agenda" className="mt-8">
-      <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">Event Agenda</h3>
-      <div className="mt-4 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
-        <div className="grid grid-cols-[140px_1fr] bg-blue-600 text-white text-sm font-semibold dark:bg-blue-700">
+      <h3 className="text-2xl font-extrabold text-slate-900">Event Agenda</h3>
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="grid grid-cols-[140px_1fr] bg-blue-600 text-white text-sm font-semibold">
           <div className="px-4 py-3">TIME</div>
           <div className="px-4 py-3">ACTIVITY</div>
         </div>
         <div>
           {rows.map((r, i) => (
             <div key={r.time + i} className="grid grid-cols-[140px_1fr] text-sm">
-              <div className="px-4 py-3 border-t border-[var(--border)] bg-[var(--surface-2)] text-slate-700 dark:text-slate-300">{r.time}</div>
-              <div className="px-4 py-3 border-t border-[var(--border)] text-slate-800 dark:text-slate-200">{r.activity}</div>
+              <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 text-slate-900 font-semibold">{r.time}</div>
+              <div className="px-4 py-3 border-t border-slate-200 text-slate-800">{r.activity}</div>
             </div>
           ))}
         </div>

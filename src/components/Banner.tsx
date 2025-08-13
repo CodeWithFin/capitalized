@@ -1,18 +1,22 @@
+"use client";
 import Image from "next/image";
+import { useState } from "react";
 
 export default function Banner() {
+  const [src, setSrc] = useState<string>("/images/Main_banner.png");
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+    <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="relative aspect-[16/9] w-full">
         <Image
-          src="https://images.unsplash.com/photo-1540574163026-643ea20ade25?q=80&w=1600&auto=format&fit=crop"
-          alt="Event banner"
+          src={src}
+          alt="Capitalized fireside breakfast chat - Energy x AI"
           fill
           className="object-cover"
           priority
+          onError={() => setSrc("/images/main-banner.jpg")}
         />
       </div>
-      <div className="px-4 py-3 border-t border-[var(--border)] text-xs text-slate-500 dark:text-slate-400">Powered by Capital Club, Siscom, AI Kenya, Lyrid</div>
+      <div className="px-4 py-3 border-t border-slate-200 text-xs text-slate-600">Powered by Capital Club, Siscom</div>
     </div>
   );
 }

@@ -3,12 +3,8 @@
 import { useEffect, useState } from "react";
 
 function getInitialTheme(): "light" | "dark" {
-  if (typeof window === "undefined") return "light";
-  const stored = window.localStorage.getItem("theme");
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  // Force light theme by default for readability
+  return "light";
 }
 
 export default function ThemeToggle() {
