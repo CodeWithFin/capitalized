@@ -11,12 +11,26 @@ export async function POST(request: NextRequest) {
     const sms = new TililSMSService();
 
     if (parsedCallback.success) {
-      // Payment was successful
       console.log('Payment completed successfully:', {
         amount: parsedCallback.amount,
         mpesaReceiptNumber: parsedCallback.mpesaReceiptNumber,
         phoneNumber: parsedCallback.phoneNumber,
       });
+
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            checkoutRequestId: parsedCallback.checkoutRequestId,
+            status: 'success',
+            amount: parsedCallback.amount,
+            mpesaRef: parsedCallback.mpesaReceiptNumber
+          })
+        });
+      } catch (error) {
+        console.error('Failed to update payment status:', error);
+      }
 
       // Send success SMS
       try {
@@ -31,7 +45,6 @@ export async function POST(request: NextRequest) {
         console.log('SMS request sent for successful payment to:', parsedCallback.phoneNumber);
       } catch (smsError) {
         console.error('Failed to send success SMS:', smsError);
-        // Don't fail the callback because of SMS error
       }
     } else {
       // Payment failed
@@ -39,6 +52,20 @@ export async function POST(request: NextRequest) {
         reason: parsedCallback.message,
         phoneNumber: parsedCallback.phoneNumber,
       });
+
+      // Update payment status
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            checkoutRequestId: parsedCallback.checkoutRequestId,
+            status: 'failed'
+          })
+        });
+      } catch (error) {
+        console.error('Failed to update payment status:', error);
+      }
 
       // Send failure SMS if we have the phone number
       if (parsedCallback.phoneNumber) {
@@ -48,18 +75,14 @@ export async function POST(request: NextRequest) {
           console.log('SMS request sent for failed payment to:', parsedCallback.phoneNumber);
         } catch (smsError) {
           console.error('Failed to send failure SMS:', smsError);
-          // Don't fail the callback because of SMS error
         }
       }
     }
 
-    // Always return success to M-Pesa to acknowledge receipt of callback
     return NextResponse.json({ message: 'Callback processed successfully' });
   } catch (error) {
     console.error('Callback processing error:', error);
     
-    // Still return success to M-Pesa to avoid retries
-    // Log the error for investigation
     return NextResponse.json({ message: 'Callback received' });
   }
 }

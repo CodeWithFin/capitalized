@@ -23,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate amount
     if (amount <= 0) {
       return NextResponse.json(
         { error: 'Amount must be greater than 0' },
@@ -34,11 +33,10 @@ export async function POST(request: NextRequest) {
     const mpesa = new MpesaService();
 
     // Generate unique account reference
-    const accountReference = `CAP-${Date.now().toString(36).toUpperCase()}`;
+    const accountReference = `INVESTMENT`;
     const transactionDesc = `Capitalized Event - ${eventType}`;
 
     try {
-      // Initiate STK push
       const stkResponse = await mpesa.initiateStkPush(
         phoneNumber,
         Number(amount),
@@ -47,6 +45,19 @@ export async function POST(request: NextRequest) {
       );
 
       if (stkResponse.ResponseCode === '0') {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              checkoutRequestId: stkResponse.CheckoutRequestID,
+              status: 'pending'
+            })
+          });
+        } catch (error) {
+          console.error('Failed to set initial payment status:', error);
+        }
+
         return NextResponse.json({
           success: true,
           message: stkResponse.CustomerMessage,
