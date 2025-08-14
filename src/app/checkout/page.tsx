@@ -1,72 +1,121 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 
 export default function CheckoutPage() {
+  const [selectedEvent, setSelectedEvent] = useState("");
+  const [isClubMember, setIsClubMember] = useState(false);
+  const [clubId, setClubId] = useState("");
+
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800">
-        <div className="mx-auto max-w-4xl px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="font-extrabold tracking-tight text-slate-900 dark:text-slate-100 text-xl">
-            CAPITALIZED
-          </Link>
-        </div>
-      </header>
+             <div className="min-h-screen bg-white">
 
-      <main className="mx-auto max-w-4xl px-6 py-10 grid grid-cols-1 md:grid-cols-[1fr_360px] gap-8">
-        <section className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Checkout</h1>
-          <p className="mt-1 text-slate-600 dark:text-slate-300 text-sm">Enter your details to complete purchase.</p>
-
-          <form className="mt-6 grid gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">First name</label>
-                <input className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm" placeholder="Jane" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Last name</label>
-                <input className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm" placeholder="Doe" />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
-              <input type="email" className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm" placeholder="you@example.com" />
-            </div>
-            <div className="grid grid-cols-[120px_1fr_1fr] gap-4">
-              <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Quantity</label>
-                <input defaultValue={1} className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Ticket</label>
-                <input disabled value="General Admission" className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Price</label>
-                <input disabled value="KES 5,000" className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 px-3 py-2 text-sm" />
-              </div>
+                 {/* Main Content */}
+           <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+                           {/* Subscribe Form Card */}
+                 <div className="bg-white rounded-2xl shadow-[0_20px_60px_-12px_rgba(0,0,0,0.25)] border border-gray-100 overflow-hidden">
+            {/* Header */}
+            <div className="bg-red-600 text-white text-center py-6">
+              <h1 className="text-2xl font-bold">Subscribe Now</h1>
             </div>
 
-            <button type="button" className="mt-2 inline-flex items-center justify-center rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-blue-700">
-              Pay Now
-            </button>
-          </form>
-        </section>
+            {/* Form */}
+            <div className="p-8 space-y-6">
+              {/* Email Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-gray-900 placeholder-gray-500"
+                />
+              </div>
 
-        <aside className="h-fit rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-          <div className="text-lg font-semibold">Order Summary</div>
-          <div className="mt-4 space-y-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span>General Admission x1</span>
-              <span>KES 5,000</span>
-            </div>
-            <div className="flex items-center justify-between border-t pt-3 font-bold">
-              <span>Total</span>
-              <span className="text-red-500">KES 5,000</span>
+              {/* Phone Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Phone Number (M-Pesa)
+                </label>
+                <input
+                  type="tel"
+                  placeholder="0712345678 or 0112345678"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-gray-900 placeholder-gray-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">0712345678 or 0112345678</p>
+              </div>
+
+              {/* Select Event */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Select Event
+                </label>
+                <select
+                  value={selectedEvent}
+                  onChange={(e) => setSelectedEvent(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-gray-900 appearance-none cursor-pointer"
+                >
+                  <option value="">Choose amount</option>
+                  <option value="5000">Capitalized Fireside Breakfast Chat – KES 5000.00</option>
+                </select>
+              </div>
+
+                                     {/* Club Member Checkbox */}
+                       <div className="flex items-center">
+                         <input
+                           type="checkbox"
+                           id="clubMember"
+                           checked={isClubMember}
+                           onChange={(e) => setIsClubMember(e.target.checked)}
+                           className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                         />
+                         <label htmlFor="clubMember" className="ml-3 text-sm text-gray-900">
+                           Club Member
+                         </label>
+                       </div>
+
+                       {/* Club ID Input - Only shown when Club Member is checked */}
+                       {isClubMember && (
+                         <div>
+                           <label className="block text-sm font-medium text-gray-900 mb-2">
+                             Club ID
+                           </label>
+                           <input
+                             type="text"
+                             value={clubId}
+                             onChange={(e) => setClubId(e.target.value)}
+                             placeholder="Enter your club ID"
+                             className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-gray-900 placeholder-gray-500"
+                           />
+                           <p className="text-xs text-gray-500 mt-1">Use: CLUB2024 for testing</p>
+                         </div>
+                       )}
+
+              {/* Divider */}
+              <div className="border-t border-gray-300 my-4"></div>
+
+                                     {/* Total Amount */}
+                       <div className="bg-gray-50 rounded-lg p-4 border-t-4 border-green-500">
+                         <div className="text-center">
+                           <p className="text-lg font-bold text-gray-900">
+                             Total Amount: KES {selectedEvent === "5000" && isClubMember && clubId.trim() ? "3,500.00" : selectedEvent === "5000" ? "5,000.00" : "0.00"}
+                           </p>
+                         </div>
+                       </div>
+
+              {/* Pay Now Button */}
+              <button
+                type="button"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-colors duration-200"
+              >
+                Pay Now
+              </button>
             </div>
           </div>
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">Your payment is secure and encrypted.</p>
-        </aside>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
