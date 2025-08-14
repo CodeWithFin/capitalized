@@ -2,10 +2,35 @@
 
 import { useState } from "react";
 
+type MpesaPaymentParams = {
+  email: string;
+  phoneNumber: string;
+  amount: number;
+  eventType: string;
+  isClubMember: boolean;
+};
+
+async function initiateMpesaPayment({ email, phoneNumber, amount, eventType, isClubMember }: MpesaPaymentParams) {
+  try {
+    const res = await fetch("/api/mpesa/initiate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, phoneNumber, amount, eventType, isClubMember }),
+    });
+    return await res.json();
+  } catch (e) {
+    return { error: "Failed to initiate payment" };
+  }
+}
+
 export default function CheckoutPage() {
   const [selectedEvent, setSelectedEvent] = useState("");
   const [isClubMember, setIsClubMember] = useState(false);
   const [clubId, setClubId] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   return (
              <div className="min-h-screen bg-white">
@@ -29,6 +54,8 @@ export default function CheckoutPage() {
                 </label>
                 <input
                   type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   placeholder="your@email.com"
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-gray-900 placeholder-gray-500"
                 />
@@ -41,6 +68,8 @@ export default function CheckoutPage() {
                 </label>
                 <input
                   type="tel"
+                  value={phoneNumber}
+                  onChange={e => setPhoneNumber(e.target.value)}
                   placeholder="0712345678 or 0112345678"
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-gray-900 placeholder-gray-500"
                 />
@@ -109,9 +138,25 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-colors duration-200"
+                disabled={loading}
+                onClick={async () => {
+                  setLoading(true);
+                  setMessage("");
+                  const amount = selectedEvent === "5000" && isClubMember && clubId.trim() ? 3500 : selectedEvent === "5000" ? 1 : 0;
+                  const res = await initiateMpesaPayment({ email, phoneNumber, amount, eventType: selectedEvent, isClubMember });
+                  if (res.success) {
+                    setMessage(res.message || "Payment initiated. Check your phone to complete the payment.");
+                  } else {
+                    setMessage(res.error || "Failed to initiate payment");
+                  }
+                  setLoading(false);
+                }}
               >
-                Pay Now
+                {loading ? "Processing..." : "Pay Now"}
               </button>
+              {message && (
+                <div className="mt-4 text-center text-sm text-red-600">{message}</div>
+              )}
             </div>
           </div>
         </div>

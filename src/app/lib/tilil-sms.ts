@@ -1,7 +1,11 @@
 interface TililSMSResponse {
-  status: string;
-  message: string;
-  data?: any;
+  status_code: string;
+  status_desc: string;
+  message_id: number;
+  mobile_number: string;
+  network_id: string;
+  message_cost: number;
+  credit_balance: number;
 }
 
 export class TililSMSService {
@@ -15,34 +19,46 @@ export class TililSMSService {
     this.apiUrl = 'https://api.tililtech.com/sms/v3/sendsms';
   }
 
-  async sendSMS(phoneNumber: string, message: string): Promise<TililSMSResponse> {
+  async sendSMS(phoneNumber: string | number, message: string): Promise<void> {
+
+    let formattedPhone = String(phoneNumber);
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '254' + formattedPhone.substring(1);
+    } else if (!formattedPhone.startsWith('254')) {
+      formattedPhone = '254' + formattedPhone;
+    }
+
     const messageParams = {
       api_key: this.apiKey,
-      service_id: 1,
-      mobile: phoneNumber,
+      service_id: 0,
+      mobile: formattedPhone,
       response_type: 'json',
       shortcode: this.shortcode,
       message: message,
     };
 
+    console.log('Sending SMS to:', formattedPhone);
+    console.log('Using shortcode:', this.shortcode);
+
     try {
-      const response = await fetch(this.apiUrl, {
+    
+      fetch(this.apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(messageParams),
-      });
+      }).then(response => response.json())
+        .then(data => {
+          console.log('SMS API Response:', data);
+        })
+        .catch(error => {
+          console.error('SMS sending failed:', error);
+        });
 
-      if (!response.ok) {
-        throw new Error(`SMS API request failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return result;
+      console.log('SMS request sent to:', formattedPhone);
     } catch (error) {
       console.error('SMS sending error:', error);
-      throw new Error(`Failed to send SMS: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -51,10 +67,10 @@ export class TililSMSService {
     mpesaReceiptNumber: string,
     eventType: string
   ): string {
-    return `Payment Confirmed! Your ticket for ${eventType} has been secured. Amount: KES ${amount}. M-Pesa Ref: ${mpesaReceiptNumber}. Thank you for joining Capitalized Event!`;
+    return `Payment Confirmed! Your ticket for ${eventType} has been secured. Amount: KES ${amount.toLocaleString()} M-Pesa Ref: ${mpesaReceiptNumber} Thank you for joining Capitalized Event! For support, contact us at events@capitalized.events`;
   }
 
   generatePaymentFailedMessage(): string {
-    return `Payment was not completed. If you experienced any issues, please contact our support team. Thank you for your interest in Capitalized Event.`;
+    return `Payment Failed. Your payment could not be processed. Please try again or contact support if the issue persists. Support: events@capitalized.events Thank you for your interest in Capitalized Event.`;
   }
 }

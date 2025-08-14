@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MpesaService } from '@/lib/mpesa';
-import { TililSMSService } from '@/lib/tilil-sms';
+import { MpesaService } from '../../../lib/mpesa';
+import { TililSMSService } from '../../../lib/tilil-sms';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,14 +20,15 @@ export async function POST(request: NextRequest) {
 
       // Send success SMS
       try {
+        const eventType = 'Capitalized Fireside Breakfast Chat';
         const successMessage = sms.generatePaymentConfirmationMessage(
           parsedCallback.amount,
           parsedCallback.mpesaReceiptNumber,
-          'Capitalized Event'
+          eventType
         );
 
         await sms.sendSMS(parsedCallback.phoneNumber, successMessage);
-        console.log('Success SMS sent to:', parsedCallback.phoneNumber);
+        console.log('SMS request sent for successful payment to:', parsedCallback.phoneNumber);
       } catch (smsError) {
         console.error('Failed to send success SMS:', smsError);
         // Don't fail the callback because of SMS error
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
         try {
           const failureMessage = sms.generatePaymentFailedMessage();
           await sms.sendSMS(parsedCallback.phoneNumber, failureMessage);
-          console.log('Failure SMS sent to:', parsedCallback.phoneNumber);
+          console.log('SMS request sent for failed payment to:', parsedCallback.phoneNumber);
         } catch (smsError) {
           console.error('Failed to send failure SMS:', smsError);
           // Don't fail the callback because of SMS error
