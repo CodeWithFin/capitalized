@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MpesaService } from '../../../lib/mpesa';
-import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {

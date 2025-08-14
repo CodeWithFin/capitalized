@@ -32,19 +32,22 @@ export async function POST(request: NextRequest) {
         console.error('Failed to update payment status:', error);
       }
 
-      // Send success SMS
+            // Send success SMS
       try {
         const eventType = 'Capitalized Fireside Breakfast Chat';
         const successMessage = sms.generatePaymentConfirmationMessage(
-          parsedCallback.amount,
-          parsedCallback.mpesaReceiptNumber,
+          parsedCallback.amount || 0,
+          parsedCallback.mpesaReceiptNumber || '',
           eventType
         );
 
-        await sms.sendSMS(parsedCallback.phoneNumber, successMessage);
-        console.log('SMS request sent for successful payment to:', parsedCallback.phoneNumber);
+        if (parsedCallback.phoneNumber) {
+          await sms.sendSMS(parsedCallback.phoneNumber, successMessage);
+          console.log('SMS request sent for successful payment to:', parsedCallback.phoneNumber);
+        }
       } catch (smsError) {
         console.error('Failed to send success SMS:', smsError);
+        // Don't fail the callback because of SMS error
       }
     } else {
       // Payment failed

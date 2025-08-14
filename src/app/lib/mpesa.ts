@@ -30,6 +30,18 @@ interface MpesaCallbackData {
   };
 }
 
+interface ParsedCallbackData {
+  success: boolean;
+  merchantRequestId: string;
+  checkoutRequestId: string;
+  message?: string;
+  amount?: number;
+  mpesaReceiptNumber?: string;
+  balance?: number;
+  transactionDate?: number;
+  phoneNumber?: number;
+}
+
 export class MpesaService {
   private consumerKey: string;
   private consumerSecret: string;
@@ -161,7 +173,7 @@ export class MpesaService {
     }
 
     const callbackItems = stkCallback.CallbackMetadata?.Item || [];
-    const parsedData: any = {
+    const parsedData: ParsedCallbackData = {
       success: true,
       merchantRequestId: stkCallback.MerchantRequestID,
       checkoutRequestId: stkCallback.CheckoutRequestID,
@@ -170,19 +182,19 @@ export class MpesaService {
     callbackItems.forEach(item => {
       switch (item.Name) {
         case 'Amount':
-          parsedData.amount = item.Value;
+          parsedData.amount = typeof item.Value === 'number' ? item.Value : parseFloat(item.Value.toString());
           break;
         case 'MpesaReceiptNumber':
-          parsedData.mpesaReceiptNumber = item.Value;
+          parsedData.mpesaReceiptNumber = item.Value.toString();
           break;
         case 'Balance':
-          parsedData.balance = item.Value;
+          parsedData.balance = typeof item.Value === 'number' ? item.Value : parseFloat(item.Value.toString());
           break;
         case 'TransactionDate':
-          parsedData.transactionDate = item.Value;
+          parsedData.transactionDate = typeof item.Value === 'number' ? item.Value : parseInt(item.Value.toString());
           break;
         case 'PhoneNumber':
-          parsedData.phoneNumber = item.Value;
+          parsedData.phoneNumber = typeof item.Value === 'number' ? item.Value : parseInt(item.Value.toString());
           break;
       }
     });
