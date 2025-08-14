@@ -30,11 +30,9 @@ export default function Home() {
         <SidebarOrder />
       </main>
 
-      <footer id="partners" className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-        <div className="mx-auto max-w-6xl px-6 py-10">
-          <Partners />
-          <div className="mt-10 text-center text-slate-500 dark:text-slate-400 text-sm">© {new Date().getFullYear()} Capitalized</div>
-        </div>
+      <footer id="partners">
+        <Partners />
+        <div className="bg-white pb-6 text-center text-slate-600 text-sm border-t border-slate-200">© {new Date().getFullYear()} Capitalized</div>
       </footer>
       <StickyBar />
     </div>
