@@ -8,16 +8,18 @@ type MpesaPaymentParams = {
   amount: number;
   eventType: string;
   isClubMember: boolean;
+  quantity?: number;
+  clubId?: string;
 };
 
 type PaymentStatus = 'idle' | 'initiating' | 'pending' | 'success' | 'failed';
 
-async function initiateMpesaPayment({ email, phoneNumber, amount, eventType, isClubMember }: MpesaPaymentParams) {
+async function initiateMpesaPayment({ email, phoneNumber, amount, eventType, isClubMember, quantity, clubId }: MpesaPaymentParams) {
   try {
     const res = await fetch("/api/mpesa/initiate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, phoneNumber, amount, eventType, isClubMember }),
+      body: JSON.stringify({ email, phoneNumber, amount, eventType, isClubMember, quantity, clubId }),
     });
     return await res.json();
   } catch (e) {
@@ -36,6 +38,7 @@ async function checkPaymentStatus(checkoutRequestId: string) {
 
 export default function CheckoutPage() {
   const [selectedEvent, setSelectedEvent] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [isClubMember, setIsClubMember] = useState(false);
   const [clubId, setClubId] = useState("");
   const [email, setEmail] = useState("");
@@ -44,6 +47,38 @@ export default function CheckoutPage() {
   const [message, setMessage] = useState("");
   const [checkoutRequestId, setCheckoutRequestId] = useState("");
   const [paymentDetails, setPaymentDetails] = useState<{amount?: number, mpesaRef?: string}>({});
+
+  // Read URL parameters and pre-populate form
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticket = urlParams.get('ticket');
+    const amount = urlParams.get('amount');
+    const urlQuantity = urlParams.get('quantity');
+    const clubMember = urlParams.get('clubMember');
+    const urlClubId = urlParams.get('clubId');
+
+    if (ticket && amount) {
+      // Set the event based on the ticket type from home page
+      if (ticket === 'individual') {
+        setSelectedEvent('5000');
+      } else if (ticket === 'corporate') {
+        setSelectedEvent('50000');
+      }
+    }
+
+    // Set quantity from URL parameter
+    if (urlQuantity) {
+      setQuantity(parseInt(urlQuantity, 10) || 1);
+    }
+
+    // Set club member information from URL
+    if (clubMember === 'true') {
+      setIsClubMember(true);
+      if (urlClubId) {
+        setClubId(urlClubId);
+      }
+    }
+  }, []);
 
   // Poll payment status
   useEffect(() => {
@@ -81,9 +116,22 @@ export default function CheckoutPage() {
     setPaymentStatus('initiating');
     setMessage("");
     
-    const amount = selectedEvent === "5000" && isClubMember && clubId.trim() ? 3500 : selectedEvent === "5000" ? 50000 : 0;
+    // Determine base amount based on ticket type (ignore quantity for M-Pesa)
+    let baseAmount = 0;
+    if (selectedEvent === "5000") {
+      baseAmount = 5000; // Standard ticket
+    } else if (selectedEvent === "50000") {
+      baseAmount = 50000; // Corporate ticket
+    }
     
-    if (!email || !phoneNumber || !selectedEvent || amount <= 0) {
+    // For M-Pesa, we only send the base amount (5000 or 50000)
+    const mpesaAmount = baseAmount;
+    
+    console.log(`💳 Processing M-Pesa payment:`);
+    console.log(`💰 Amount: KES ${mpesaAmount.toLocaleString()}`);
+    console.log(`🎫 Ticket Type: ${selectedEvent === "5000" ? "Standard" : "Corporate"}`);
+    
+    if (!email || !phoneNumber || !selectedEvent || mpesaAmount <= 0) {
       setMessage("Please fill in all required fields");
       setPaymentStatus('idle');
       return;
@@ -92,9 +140,11 @@ export default function CheckoutPage() {
     const res = await initiateMpesaPayment({ 
       email, 
       phoneNumber, 
-      amount, 
+      amount: mpesaAmount, // Send exact amount: 5000 or 50000
       eventType: selectedEvent, 
-      isClubMember 
+      isClubMember,
+      quantity,
+      clubId: isClubMember ? clubId : undefined
     });
 
     if (res.success) {
@@ -168,27 +218,75 @@ export default function CheckoutPage() {
                   onChange={(e) => setSelectedEvent(e.target.value)}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-gray-900 appearance-none cursor-pointer"
                 >
-                  <option value="">Choose amount</option>
-                  <option value="5000">Capitalized Fireside Breakfast Chat – KES 5000.00</option>
+                  <option value="">Choose ticket type</option>
+                  <option value="5000">Individual Ticket – KES 5,000.00</option>
+                  <option value="50000">Corporate & SME Package – KES 50,000.00</option>
                 </select>
               </div>
 
-                      {/* Club Member Checkbox */}
-                       <div className="flex items-center">
-                         <input
-                           type="checkbox"
-                           id="clubMember"
-                           checked={isClubMember}
-                           onChange={(e) => setIsClubMember(e.target.checked)}
-                           className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                         />
-                         <label htmlFor="clubMember" className="ml-3 text-sm text-gray-900">
-                           Club Member
-                         </label>
-                       </div>
+              {/* Quantity Selector */}
+              {selectedEvent && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Number of Tickets
+                  </label>
+                  <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <button 
+                        type="button"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="h-10 w-10 rounded-full border border-gray-300 bg-white text-gray-800 hover:bg-gray-100 text-lg font-semibold flex items-center justify-center transition-colors"
+                      >
+                        -
+                      </button>
+                      <div className="w-16 text-center">
+                        <span className="text-xl font-bold text-gray-900">{quantity}</span>
+                        <div className="text-xs text-gray-500">
+                          {selectedEvent === "50000" ? "packages" : "tickets"}
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="h-10 w-10 rounded-full border border-gray-300 bg-white text-gray-800 hover:bg-gray-100 text-lg font-semibold flex items-center justify-center transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600">Unit Price</div>
+                      <div className="text-lg font-bold text-gray-900">
+                        KES {selectedEvent === "5000" 
+                          ? (isClubMember && clubId.trim() ? "3,500" : "5,000")
+                          : "50,000"
+                        }
+                      </div>
+                      {selectedEvent === "50000" && (
+                        <div className="text-xs text-blue-600">Includes 5 admissions</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+                      {/* Club Member Checkbox - Only for Individual tickets */}
+                       {selectedEvent === "5000" && (
+                         <div className="flex items-center">
+                           <input
+                             type="checkbox"
+                             id="clubMember"
+                             checked={isClubMember}
+                             onChange={(e) => setIsClubMember(e.target.checked)}
+                             className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                           />
+                           <label htmlFor="clubMember" className="ml-3 text-sm text-gray-900">
+                             Club Member (Get KES 1,500 discount)
+                           </label>
+                         </div>
+                       )}
 
                        {/* Club ID Input - Only shown when Club Member is checked */}
-                       {isClubMember && (
+                       {selectedEvent === "5000" && isClubMember && (
                          <div>
                            <label className="block text-sm font-medium text-gray-900 mb-2">
                              Club ID
@@ -210,9 +308,55 @@ export default function CheckoutPage() {
               {/* Total Amount */}
                        <div className="bg-gray-50 rounded-lg p-4 border-t-4 border-green-500">
                          <div className="text-center">
-                           <p className="text-lg font-bold text-gray-900">
-                             Total Amount: KES {selectedEvent === "5000" && isClubMember && clubId.trim() ? "3,500.00" : selectedEvent === "5000" ? "5,000.00" : "0.00"}
-                           </p>
+                           <div className="mb-2">
+                             <p className="text-lg font-bold text-gray-900">
+                               M-Pesa Payment Amount:
+                             </p>
+                             <p className="text-2xl font-bold text-blue-600">
+                               KES {(() => {
+                                 if (selectedEvent === "5000") {
+                                   return "5,000";
+                                 } else if (selectedEvent === "50000") {
+                                   return "50,000";
+                                 }
+                                 return "0";
+                               })()}
+                             </p>
+                             <p className="text-sm text-gray-600 mt-2">
+                               {selectedEvent === "5000" 
+                                 ? "Standard Ticket" 
+                                 : selectedEvent === "50000" 
+                                   ? "Corporate Package" 
+                                   : "Select a ticket type"
+                               }
+                             </p>
+                           </div>
+                           
+                           {/* Show breakdown if quantity > 1 or club discount */}
+                           {(quantity > 1 || (selectedEvent === "5000" && isClubMember && clubId.trim())) && (
+                             <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                               <p className="text-sm font-semibold text-blue-800 mb-1">Order Summary:</p>
+                               <div className="text-xs text-blue-700">
+                                 {quantity > 1 && (
+                                   <p>{quantity} × {selectedEvent === "50000" ? "Corporate packages" : "tickets"}</p>
+                                 )}
+                                 {selectedEvent === "5000" && isClubMember && clubId.trim() && (
+                                   <p>Club member discount: -KES {(1500 * quantity).toLocaleString()}</p>
+                                 )}
+                                 <p className="font-semibold mt-1">
+                                   Final Total: KES {(() => {
+                                     let unitPrice = 0;
+                                     if (selectedEvent === "5000") {
+                                       unitPrice = isClubMember && clubId.trim() ? 3500 : 5000;
+                                     } else if (selectedEvent === "50000") {
+                                       unitPrice = 50000;
+                                     }
+                                     return (unitPrice * quantity).toLocaleString();
+                                   })()}
+                                 </p>
+                               </div>
+                             </div>
+                           )}
                          </div>
                        </div>
 

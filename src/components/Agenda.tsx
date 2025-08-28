@@ -12,7 +12,7 @@ const rows: Row[] = [
 
 export default function Agenda() {
   return (
-    <section id="agenda" className="mt-8">
+    <section id="agenda" className="mt-8 scroll-mt-24">
       <h3 className="text-2xl font-extrabold text-slate-900">Event Agenda</h3>
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="grid grid-cols-[140px_1fr] bg-blue-600 text-white text-sm font-semibold">

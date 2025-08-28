@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 export default function Banner() {
-  const [src, setSrc] = useState<string>("/images/Main_banner.png");
+  const [src, setSrc] = useState<string>("/images/capitalized3.png");
   return (
     <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="relative aspect-[16/9] w-full">

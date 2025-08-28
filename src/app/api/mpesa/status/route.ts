@@ -15,6 +15,46 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing checkoutRequestId' }, { status: 400 });
   }
 
+  // Development mode - simulate payment success after 5 seconds
+  const isDevMode = process.env.MPESA_DEV_MODE === 'true';
+  if (isDevMode && checkoutRequestId.startsWith('ws_CO_')) {
+    const status = paymentStatuses.get(checkoutRequestId);
+    const now = Date.now();
+    
+    if (!status) {
+      // First time checking - set as pending
+      paymentStatuses.set(checkoutRequestId, {
+        status: 'pending',
+        timestamp: now
+      });
+      return NextResponse.json({ 
+        status: 'pending', 
+        message: 'Development: Payment initiated' 
+      });
+    }
+    
+    // After 5 seconds, mark as successful
+    if (now - status.timestamp > 5000) {
+      paymentStatuses.set(checkoutRequestId, {
+        status: 'success',
+        timestamp: now,
+        amount: 5000, // Mock amount
+        mpesaRef: `DEV${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+      });
+      return NextResponse.json({
+        status: 'success',
+        amount: 5000,
+        mpesaRef: `DEV${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        message: 'Development: Payment completed successfully'
+      });
+    }
+    
+    return NextResponse.json({ 
+      status: 'pending', 
+      message: 'Development: Payment in progress...' 
+    });
+  }
+
   const status = paymentStatuses.get(checkoutRequestId);
   
   if (!status) {

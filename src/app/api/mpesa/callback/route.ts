@@ -32,20 +32,21 @@ export async function POST(request: NextRequest) {
         console.error('Failed to update payment status:', error);
       }
 
-      // Send success SMS
+      // Send success SMS - "Siscom has received your payment"
       try {
-        const eventType = 'Capitalized Fireside Breakfast Chat';
-        const successMessage = sms.generatePaymentConfirmationMessage(
-          parsedCallback.amount,
-          parsedCallback.mpesaReceiptNumber,
-          eventType
-        );
+        const ticketType = (parsedCallback.amount === 5000) ? 'Standard' : 'Corporate';
+        const confirmationMessage = `Siscom has received your payment of KES ${parsedCallback.amount?.toLocaleString()} for Capitalized ${ticketType} subscription. Ref: ${parsedCallback.mpesaReceiptNumber}. Thank you!`;
 
-        await sms.sendSMS(parsedCallback.phoneNumber, successMessage);
-        console.log('SMS request sent for successful payment to:', parsedCallback.phoneNumber);
+        if (parsedCallback.phoneNumber) {
+          await sms.sendSMS(parsedCallback.phoneNumber, confirmationMessage);
+          console.log('SMS confirmation sent for successful payment to:', parsedCallback.phoneNumber);
+          console.log('Message:', confirmationMessage);
+        }
       } catch (smsError) {
         console.error('Failed to send success SMS:', smsError);
+        // Don't fail the callback because of SMS error
       }
+
     } else {
       // Payment failed
       console.log('Payment failed:', {

@@ -30,6 +30,18 @@ interface MpesaCallbackData {
   };
 }
 
+interface ParsedCallbackData {
+  success: boolean;
+  merchantRequestId: string;
+  checkoutRequestId: string;
+  message?: string;
+  amount?: number;
+  mpesaReceiptNumber?: string;
+  balance?: number;
+  transactionDate?: number;
+  phoneNumber?: number;
+}
+
 export class MpesaService {
   private consumerKey: string;
   private consumerSecret: string;
@@ -37,6 +49,7 @@ export class MpesaService {
   private passkey: string;
   private environment: string;
   private baseUrl: string;
+  private devMode: boolean;
 
   constructor() {
     this.consumerKey = process.env.MPESA_CONSUMER_KEY!;
@@ -44,9 +57,26 @@ export class MpesaService {
     this.shortcode = process.env.MPESA_SHORTCODE!;
     this.passkey = process.env.MPESA_PASSKEY!;
     this.environment = process.env.MPESA_ENVIRONMENT || 'sandbox';
+    this.devMode = process.env.MPESA_DEV_MODE === 'true';
     this.baseUrl = this.environment === 'production' 
       ? 'https://api.safaricom.co.ke' 
       : 'https://sandbox.safaricom.co.ke';
+
+    // Validate required credentials
+    if (!this.devMode) {
+      if (!this.consumerKey || this.consumerKey === 'your_consumer_key_here') {
+        throw new Error('MPESA_CONSUMER_KEY is required and must be set to your actual consumer key');
+      }
+      if (!this.consumerSecret || this.consumerSecret === 'your_actual_consumer_secret_from_safaricom') {
+        throw new Error('MPESA_CONSUMER_SECRET is required and must be set to your actual consumer secret');
+      }
+      if (!this.shortcode) {
+        throw new Error('MPESA_SHORTCODE is required');
+      }
+      if (!this.passkey) {
+        throw new Error('MPESA_PASSKEY is required');
+      }
+    }
   }
 
   private generateTimestamp(): string {
@@ -60,10 +90,17 @@ export class MpesaService {
   }
 
   private async getAccessToken(): Promise<string> {
+    // Development mode - return mock token
+    if (this.devMode) {
+      return 'mock_access_token_for_development';
+    }
+
     const auth = Buffer.from(`${this.consumerKey}:${this.consumerSecret}`).toString('base64');
     
     console.log('Getting M-Pesa access token from:', `${this.baseUrl}/oauth/v1/generate?grant_type=client_credentials`);
     console.log('Consumer Key:', this.consumerKey ? `${this.consumerKey.substring(0, 10)}...` : 'NOT SET');
+    console.log('Consumer Secret:', this.consumerSecret ? `${this.consumerSecret.substring(0, 10)}...` : 'NOT SET');
+    console.log('Environment:', this.environment);
     
     const response = await fetch(`${this.baseUrl}/oauth/v1/generate?grant_type=client_credentials`, {
       method: 'GET',
@@ -86,16 +123,36 @@ export class MpesaService {
   }
 
   async initiateStkPush(phoneNumber: string, amount: number, accountReference: string, transactionDesc: string): Promise<MpesaSTKPushResponse> {
+    // Development mode - return mock response
+    if (this.devMode) {
+      console.log('🚀 Development Mode: Simulating M-Pesa STK Push');
+      console.log('📱 Phone:', phoneNumber);
+      console.log('💰 Amount:', amount);
+      console.log('📝 Reference:', accountReference);
+      console.log('📄 Description:', transactionDesc);
+      
+      return {
+        MerchantRequestID: `DEV_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        CheckoutRequestID: `ws_CO_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ResponseCode: '0',
+        ResponseDescription: 'Success. Request accepted for processing',
+        CustomerMessage: 'Success. Request accepted for processing'
+      };
+    }
+
     const accessToken = await this.getAccessToken();
     const timestamp = this.generateTimestamp();
     const password = this.generatePassword(timestamp);
 
-    // Format phone number (remove leading 0 and add 254)
-    const formattedPhone = phoneNumber.startsWith('0') 
-      ? '254' + phoneNumber.substring(1)
-      : phoneNumber.startsWith('254') 
-        ? phoneNumber 
-        : '254' + phoneNumber;
+    // Format phone number to MSISDN format (2547XXXXXXXX)
+    let formattedPhone = phoneNumber.replace(/\s+/g, ''); // Remove spaces
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '254' + formattedPhone.substring(1);
+    } else if (formattedPhone.startsWith('+254')) {
+      formattedPhone = formattedPhone.substring(1);
+    } else if (!formattedPhone.startsWith('254')) {
+      formattedPhone = '254' + formattedPhone;
+    }
 
     const requestBody = {
       BusinessShortCode: this.shortcode,
@@ -107,8 +164,8 @@ export class MpesaService {
       PartyB: this.shortcode,
       PhoneNumber: formattedPhone,
       CallBackURL: process.env.MPESA_CALLBACK_URL,
-      AccountReference: accountReference,
-      TransactionDesc: transactionDesc,
+      AccountReference: "Capitalized Payment",
+      TransactionDesc: "Payment for Capitalized subscription",
     };
 
     console.log('M-Pesa STK Push Request:', {
@@ -161,7 +218,7 @@ export class MpesaService {
     }
 
     const callbackItems = stkCallback.CallbackMetadata?.Item || [];
-    const parsedData: any = {
+    const parsedData: ParsedCallbackData = {
       success: true,
       merchantRequestId: stkCallback.MerchantRequestID,
       checkoutRequestId: stkCallback.CheckoutRequestID,
@@ -170,19 +227,19 @@ export class MpesaService {
     callbackItems.forEach(item => {
       switch (item.Name) {
         case 'Amount':
-          parsedData.amount = item.Value;
+          parsedData.amount = typeof item.Value === 'number' ? item.Value : parseFloat(item.Value.toString());
           break;
         case 'MpesaReceiptNumber':
-          parsedData.mpesaReceiptNumber = item.Value;
+          parsedData.mpesaReceiptNumber = item.Value.toString();
           break;
         case 'Balance':
-          parsedData.balance = item.Value;
+          parsedData.balance = typeof item.Value === 'number' ? item.Value : parseFloat(item.Value.toString());
           break;
         case 'TransactionDate':
-          parsedData.transactionDate = item.Value;
+          parsedData.transactionDate = typeof item.Value === 'number' ? item.Value : parseInt(item.Value.toString());
           break;
         case 'PhoneNumber':
-          parsedData.phoneNumber = item.Value;
+          parsedData.phoneNumber = typeof item.Value === 'number' ? item.Value : parseInt(item.Value.toString());
           break;
       }
     });
