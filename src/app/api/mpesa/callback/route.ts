@@ -18,6 +18,12 @@ export async function POST(request: NextRequest) {
       });
 
       try {
+        // Get existing payment details first
+        const statusResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status?checkoutRequestId=${parsedCallback.checkoutRequestId}`);
+        const existingStatus = await statusResponse.json();
+        
+        console.log('Existing status before update:', existingStatus);
+        
         await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -25,26 +31,36 @@ export async function POST(request: NextRequest) {
             checkoutRequestId: parsedCallback.checkoutRequestId,
             status: 'success',
             amount: parsedCallback.amount,
-            mpesaRef: parsedCallback.mpesaReceiptNumber
+            mpesaRef: parsedCallback.mpesaReceiptNumber,
+            ticketType: existingStatus.ticketType,
+            quantity: existingStatus.quantity,
+            isClubMember: existingStatus.isClubMember
           })
         });
-      } catch (error) {
-        console.error('Failed to update payment status:', error);
-      }
 
-      // Send success SMS - "Siscom has received your payment"
-      try {
-        const ticketType = (parsedCallback.amount === 5000) ? 'Standard' : 'Corporate';
-        const confirmationMessage = `Siscom has received your payment of KES ${parsedCallback.amount?.toLocaleString()} for Capitalized ${ticketType} subscription. Ref: ${parsedCallback.mpesaReceiptNumber}. Thank you!`;
+        // Send success SMS using the data we already have
+        const ticketType = existingStatus.ticketType || 'individual';
+        const quantity = existingStatus.quantity || 1;
+        
+        console.log('SMS Debug - Ticket Type:', ticketType, 'Quantity:', quantity, 'Status Data:', existingStatus);
+        
+        let confirmationMessage: string;
+        
+        if (ticketType === 'corporate') {
+          const packageText = quantity > 1 ? `${quantity} Corporate Packages` : 'Corporate Package';
+          confirmationMessage = `Payment Confirmed! Your slot for Capitalized ${packageText} is secured (admits 5 people each). Amount: KES ${parsedCallback.amount?.toLocaleString()}  Ref: ${parsedCallback.mpesaReceiptNumber}. Perfect for group networking! For support, contact us at events@capitalized.events`;
+        } else {
+          const ticketText = quantity > 1 ? `${quantity} Individual tickets` : 'Individual ticket';
+          confirmationMessage = `Payment Confirmed! Your slot for Capitalized Fireside ${ticketText} is secured. Amount: KES ${parsedCallback.amount?.toLocaleString()} Ref: ${parsedCallback.mpesaReceiptNumber}. Thank you for joining and get ready to network! For support, contact us at events@capitalized.events`;
+        }
 
         if (parsedCallback.phoneNumber) {
           await sms.sendSMS(parsedCallback.phoneNumber, confirmationMessage);
           console.log('SMS confirmation sent for successful payment to:', parsedCallback.phoneNumber);
           console.log('Message:', confirmationMessage);
         }
-      } catch (smsError) {
-        console.error('Failed to send success SMS:', smsError);
-        // Don't fail the callback because of SMS error
+      } catch (error) {
+        console.error('Failed to update payment status:', error);
       }
 
     } else {
@@ -56,12 +72,19 @@ export async function POST(request: NextRequest) {
 
       // Update payment status
       try {
+        // Get existing payment details first
+        const statusResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status?checkoutRequestId=${parsedCallback.checkoutRequestId}`);
+        const existingStatus = await statusResponse.json();
+        
         await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             checkoutRequestId: parsedCallback.checkoutRequestId,
-            status: 'failed'
+            status: 'failed',
+            ticketType: existingStatus.ticketType,
+            quantity: existingStatus.quantity,
+            isClubMember: existingStatus.isClubMember
           })
         });
       } catch (error) {

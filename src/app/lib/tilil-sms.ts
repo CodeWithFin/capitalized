@@ -65,9 +65,15 @@ export class TililSMSService {
   generatePaymentConfirmationMessage(
     amount: number,
     mpesaReceiptNumber: string,
-    eventType: string
+    ticketType: 'individual' | 'corporate',
+    quantity: number = 1
   ): string {
-    return `Payment Confirmed! Your ticket for ${eventType} has been secured. Amount: KES ${amount.toLocaleString()} M-Pesa Ref: ${mpesaReceiptNumber} Thank you for joining Capitalized Event! For support, contact us at events@capitalized.events`;
+    if (ticketType === 'corporate') {
+      return `Payment Confirmed! Your Corporate Package (admits 5 people) x${quantity} has been secured. Amount: KES ${amount.toLocaleString()} M-Pesa Ref: ${mpesaReceiptNumber} Perfect for group networking! For support, contact us at events@capitalized.events`;
+    } else {
+      const ticketText = quantity > 1 ? `${quantity} Individual tickets` : 'Individual ticket';
+      return `Payment Confirmed! Your ${ticketText} for Capitalized Event has been secured. Amount: KES ${amount.toLocaleString()} M-Pesa Ref: ${mpesaReceiptNumber} Thank you for joining! For support, contact us at events@capitalized.events`;
+    }
   }
 
   generatePaymentFailedMessage(): string {

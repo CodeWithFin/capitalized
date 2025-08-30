@@ -1,82 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MpesaService } from '../../../lib/mpesa';
-import { savePaymentRecord } from '../../../lib/database';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phoneNumber, amount, eventType, isClubMember, quantity = 1, clubId } = await request.json();
+    const { email, phoneNumber, amount, eventType, isClubMember, ticketType, quantity } = await request.json();
 
     // Validate input
-    if (!email || !phoneNumber || !amount || !eventType) {
+    if (!email || !phoneNumber || !amount || !eventType || !ticketType || !quantity) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Validate phone number format (Kenyan format)
-    const phoneRegex = /^(?:254|\+254|0)[17]\d{8}$/;
+    // Validate phone number format
+    const phoneRegex = /^(?:254|0)[17]\d{8}$/;
     if (!phoneRegex.test(phoneNumber)) {
       return NextResponse.json(
-        { error: 'Invalid Kenyan phone number format. Use 07XXXXXXXX or 254XXXXXXXX' },
+        { error: 'Invalid phone number format' },
         { status: 400 }
       );
     }
 
-    // Validate amount (must be exactly 5000 or 50000)
-    if (![5000, 50000].includes(Number(amount))) {
+    if (amount <= 0) {
       return NextResponse.json(
-        { error: 'Invalid amount. Must be 5000 (Standard) or 50000 (Corporate)' },
+        { error: 'Amount must be greater than 0' },
         { status: 400 }
       );
     }
 
     const mpesa = new MpesaService();
 
-    // Use the exact amount provided (5000 or 50000)
-    const paymentAmount = Number(amount);
-    const ticketType = paymentAmount === 5000 ? 'Standard' : 'Corporate';
-    
-    console.log(`🎫 Initiating M-Pesa payment for ${ticketType} ticket`);
-    console.log(`💰 Amount: KES ${paymentAmount.toLocaleString()}`);
-    console.log(`📱 Phone: ${phoneNumber}`);
+    // Generate unique account reference
+    const accountReference = `INVESTMENT`;
+    const ticketTypeText = ticketType === 'individual' ? 'Individual' : 'Corporate';
+    const transactionDesc = `Capitalized ${ticketTypeText} Ticket x${quantity}`;
 
     try {
       const stkResponse = await mpesa.initiateStkPush(
         phoneNumber,
-        paymentAmount,
-        "Capitalized Payment",
-        "Payment for Capitalized subscription"
+        Number(amount),
+        accountReference,
+        transactionDesc
       );
 
       if (stkResponse.ResponseCode === '0') {
-        // Save payment record with enhanced information
-        try {
-          const ticketTypeForRecord = paymentAmount === 5000 ? 'individual' : 'corporate';
-          savePaymentRecord({
-            email,
-            phoneNumber,
-            amount: paymentAmount,
-            eventType: paymentAmount.toString(),
-            ticketType: ticketTypeForRecord,
-            quantity: quantity || 1,
-            isClubMember: isClubMember || false,
-            clubId: isClubMember ? clubId : undefined,
-            checkoutRequestId: stkResponse.CheckoutRequestID,
-            merchantRequestId: stkResponse.MerchantRequestID,
-            status: 'pending'
-          });
-        } catch (error) {
-          console.error('Failed to save payment record:', error);
-        }
-
         try {
           await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mpesa/status`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               checkoutRequestId: stkResponse.CheckoutRequestID,
-              status: 'pending'
+              status: 'pending',
+              ticketType,
+              quantity,
+              isClubMember
             })
           });
         } catch (error) {
