@@ -4,7 +4,10 @@ const paymentStatuses = new Map<string, {
   status: 'pending' | 'success' | 'failed', 
   timestamp: number,
   amount?: number,
-  mpesaRef?: string 
+  mpesaRef?: string,
+  ticketType?: 'individual' | 'corporate',
+  quantity?: number,
+  isClubMember?: boolean
 }>();
 
 export async function GET(request: NextRequest) {
@@ -37,13 +40,16 @@ export async function GET(request: NextRequest) {
     status: status.status,
     amount: status.amount,
     mpesaRef: status.mpesaRef,
+    ticketType: status.ticketType,
+    quantity: status.quantity,
+    isClubMember: status.isClubMember,
     message: status.status === 'success' ? 'Payment completed successfully' : 
              status.status === 'failed' ? 'Payment failed' : 'Payment in progress'
   });
 }
 
 export async function POST(request: NextRequest) {
-  const { checkoutRequestId, status, amount, mpesaRef } = await request.json();
+  const { checkoutRequestId, status, amount, mpesaRef, ticketType, quantity, isClubMember } = await request.json();
   
   if (!checkoutRequestId || !status) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -53,7 +59,10 @@ export async function POST(request: NextRequest) {
     status,
     timestamp: Date.now(),
     amount,
-    mpesaRef
+    mpesaRef,
+    ticketType,
+    quantity,
+    isClubMember
   });
 
   return NextResponse.json({ message: 'Status updated' });

@@ -14,7 +14,7 @@ export default function Partners() {
   const duplicatedLogos = [...logos, ...logos];
 
   return (
-    <section id="partners" className="w-full bg-white py-20">
+    <section id="partners" className="w-full bg-white py-20 scroll-mt-24">
       <div className="text-center mb-16">
         <h2 className="text-4xl font-bold text-slate-800">Our Trusted Partners</h2>
         <div className="mt-3 w-16 h-1 bg-blue-600 mx-auto rounded-full"></div>

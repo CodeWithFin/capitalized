@@ -4,10 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phoneNumber, amount, eventType, isClubMember } = await request.json();
+    const { email, phoneNumber, amount, eventType, isClubMember, ticketType, quantity } = await request.json();
 
     // Validate input
-    if (!email || !phoneNumber || !amount || !eventType) {
+    if (!email || !phoneNumber || !amount || !eventType || !ticketType || !quantity) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
 
     // Generate unique account reference
     const accountReference = `INVESTMENT`;
-    const transactionDesc = `Capitalized Event - ${eventType}`;
+    const ticketTypeText = ticketType === 'individual' ? 'Individual' : 'Corporate';
+    const transactionDesc = `Capitalized ${ticketTypeText} Ticket x${quantity}`;
 
     try {
       const stkResponse = await mpesa.initiateStkPush(
@@ -51,7 +52,10 @@ export async function POST(request: NextRequest) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               checkoutRequestId: stkResponse.CheckoutRequestID,
-              status: 'pending'
+              status: 'pending',
+              ticketType,
+              quantity,
+              isClubMember
             })
           });
         } catch (error) {
