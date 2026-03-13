@@ -3,16 +3,16 @@ export default function WhyAttend() {
     <section id="why" className="mt-16 scroll-mt-24">
       <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">About this event</h2>
       <p className="mt-4 text-slate-800 max-w-3xl text-lg">
-        Capitalized 3.0 returns for its third edition on October 17th 2025 at the prestigious Capital Club. This edition takes on an even bolder and sharper focus, building on the success of the last edition, "Africa in the Age of AI."
+        Capitalized 3.0 returns for its third edition on October 17th 2025 at the prestigious Capital Club. This edition takes on an even bolder and sharper focus, building on the success of the last edition, &quot;Africa in the Age of AI.&quot;
       </p>
       <p className="mt-4 text-slate-800 max-w-3xl text-lg">
-        The capitalized 3.0 theme explores a critical question: <strong>"How will Kenya energize its AI ambitions?"</strong>
+        The capitalized 3.0 theme explores a critical question: <strong>&quot;How will Kenya energize its AI ambitions?&quot;</strong>
       </p>
       <p className="mt-4 text-slate-800 max-w-3xl text-lg">
-        Artificial Intelligence has become one of today's most transformative conversations. While much of the spotlight shines on consumer applications and cloud adoption, the hidden backbone of AI is energy—the cost, infrastructure, and sustainability needed to power millions of AI interactions daily.
+        Artificial Intelligence has become one of today&apos;s most transformative conversations. While much of the spotlight shines on consumer applications and cloud adoption, the hidden backbone of AI is energy—the cost, infrastructure, and sustainability needed to power millions of AI interactions daily.
       </p>
       <p className="mt-4 text-slate-800 max-w-3xl text-lg">
-        AI's exponential growth is creating unprecedented energy demands. To illustrate:
+        AI&apos;s exponential growth is creating unprecedented energy demands. To illustrate:
       </p>
       <ul className="mt-4 space-y-2 text-slate-800 max-w-3xl text-lg">
         <li className="flex gap-3">
@@ -42,10 +42,10 @@ export default function WhyAttend() {
         </li>
       </ul>
       <p className="mt-4 text-slate-800 max-w-3xl text-lg">
-        To address these questions, Capital Club and Siscom will host Eng. Njenga, CEO of KenGen, Kenya's largest producer of energy. He will share his perspective and vision on how Kenya can drive the energy transition that powers AI—balancing ambition, sustainability, and opportunity.
+        To address these questions, Capital Club and Siscom will host Eng. Njenga, CEO of KenGen, Kenya&apos;s largest producer of energy. He will share his perspective and vision on how Kenya can drive the energy transition that powers AI—balancing ambition, sustainability, and opportunity.
       </p>
       <p className="mt-4 text-slate-800 max-w-3xl text-lg">
-        Capitalized 3.0 promises a groundbreaking dialogue at the intersection of AI, energy, and Africa's future.
+        Capitalized 3.0 promises a groundbreaking dialogue at the intersection of AI, energy, and Africa&apos;s future.
       </p>
     </section>
   );

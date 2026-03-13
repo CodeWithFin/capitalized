@@ -30,6 +30,18 @@ interface MpesaCallbackData {
   };
 }
 
+interface ParsedMpesaCallbackData {
+  success: boolean;
+  merchantRequestId: string;
+  checkoutRequestId: string;
+  amount?: string | number;
+  mpesaReceiptNumber?: string | number;
+  balance?: string | number;
+  transactionDate?: string | number;
+  phoneNumber?: string | number;
+  message?: string;
+}
+
 export class MpesaService {
   private consumerKey: string;
   private consumerSecret: string;
@@ -161,7 +173,7 @@ export class MpesaService {
     }
 
     const callbackItems = stkCallback.CallbackMetadata?.Item || [];
-    const parsedData: any = {
+    const parsedData: ParsedMpesaCallbackData = {
       success: true,
       merchantRequestId: stkCallback.MerchantRequestID,
       checkoutRequestId: stkCallback.CheckoutRequestID,
